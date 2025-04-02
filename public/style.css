@@ -43,3 +43,16 @@ body {
     background-color: #222;
     color: white;
   }
+
+  .cell.knight-white {
+    background-color: #fff;
+    color: black;
+    font-weight: bold;
+  }
+
+  .cell.knight-black {
+    background-color: #b0f2b4;
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 0 8px 2px #8de19b;
+  }
