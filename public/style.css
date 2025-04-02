@@ -1,0 +1,45 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f0f0;
+    margin: 20px;
+  }
+  
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 2px;
+    margin: 20px auto;
+    width: max-content;
+  }
+  
+  .cell {
+    width: 60px;
+    height: 60px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .cell.black {
+    background-color: #444;
+  }
+  
+  .cell.burned {
+    background-color: #ff7f7f;
+    cursor: not-allowed;
+  }
+  
+  .cell.knight-white {
+    background-color: #fff;
+  }
+  
+  .cell.knight-black {
+    background-color: #222;
+    color: white;
+  }
