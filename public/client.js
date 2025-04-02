@@ -128,6 +128,12 @@ function updateBoardFromState(state) {
     createBoard();
     var posWhite = state.positions.white;
     var posBlack = state.positions.black;
+    // Renderiza casas queimadas
+    state.burned.forEach(function (b) {
+        var burnedCell = document.querySelector(".cell[data-x=\"".concat(b.x, "\"][data-y=\"").concat(b.y, "\"]"));
+        if (burnedCell)
+            burnedCell.classList.add("burned");
+    });
     var whiteCell = document.querySelector(".cell[data-x=\"".concat(posWhite.x, "\"][data-y=\"").concat(posWhite.y, "\"]"));
     var blackCell = document.querySelector(".cell[data-x=\"".concat(posBlack.x, "\"][data-y=\"").concat(posBlack.y, "\"]"));
     if (whiteCell) {

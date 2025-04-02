@@ -145,6 +145,12 @@ function updateBoardFromState(state: any) {
     const posWhite = state.positions.white;
     const posBlack = state.positions.black;
 
+    // Renderiza casas queimadas
+    state.burned.forEach((b: { x: number; y: number }) => {
+        const burnedCell = document.querySelector(`.cell[data-x="${b.x}"][data-y="${b.y}"]`);
+        if (burnedCell) burnedCell.classList.add("burned");
+    });
+
     const whiteCell = document.querySelector(`.cell[data-x="${posWhite.x}"][data-y="${posWhite.y}"]`);
     const blackCell = document.querySelector(`.cell[data-x="${posBlack.x}"][data-y="${posBlack.y}"]`);
 

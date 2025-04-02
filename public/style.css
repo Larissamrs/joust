@@ -61,3 +61,20 @@ body {
     outline: 3px solid limegreen;
     cursor: pointer;
   }
+
+  .cell.burned {
+    background-color: #ffefef !important;
+    position: relative;
+    opacity: 0.6;
+  }
+  
+  .cell.burned::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 3px;
+    background-color: red;
+    transform: rotate(-45deg);
+    top: 50%;
+    left: 10%;
+  }
