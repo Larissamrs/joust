@@ -54,6 +54,23 @@ function isValidKnightMove(from: Position, to: Position): boolean {
   return (dx === 2 && dy === 1) || (dx === 1 && dy === 2);
 }
 
+function getValidMoves(from: Position): Position[] {
+    const directions = [
+      { x: 1, y: 2 }, { x: 2, y: 1 }, { x: 2, y: -1 }, { x: 1, y: -2 },
+      { x: -1, y: -2 }, { x: -2, y: -1 }, { x: -2, y: 1 }, { x: -1, y: 2 },
+    ];
+  
+    return directions
+      .map(dir => ({ x: from.x + dir.x, y: from.y + dir.y }))
+      .filter(pos =>
+        pos.x >= 0 && pos.x < 8 &&
+        pos.y >= 0 && pos.y < 8 &&
+        !isBurned(pos) &&
+        !positionsEqual(pos, gameState!.positions.white) &&
+        !positionsEqual(pos, gameState!.positions.black)
+      );
+  }
+
 function positionsEqual(a: Position, b: Position): boolean {
   return a.x === b.x && a.y === b.y;
 }
@@ -106,7 +123,6 @@ wss.on('connection', (ws: WebSocket) => {
       const from = gameState.positions[player.id];
       const to = data.to as Position;
 
-      // Valida movimento
       if (
         !isValidKnightMove(from, to) ||
         isBurned(to) ||
@@ -116,13 +132,40 @@ wss.on('connection', (ws: WebSocket) => {
         return;
       }
 
-      // Movimento válido
       console.log(`✅ ${player.id} moveu de (${from.x},${from.y}) para (${to.x},${to.y})`);
 
-      gameState.burned.push(from); // Queima a casa anterior
+      gameState.burned.push(from); 
       gameState.positions[player.id] = to;
       gameState.currentPlayer = getOpponent(player.id);
 
+      const current = gameState.currentPlayer;
+      const whiteMoves = getValidMoves(gameState.positions.white);
+      const blackMoves = getValidMoves(gameState.positions.black);
+
+      if (whiteMoves.length === 0 && blackMoves.length === 0) {
+        console.log("⚖️ Empate detectado.");
+        players.forEach(p =>
+          p.ws.send(JSON.stringify({ type: "end", reason: "empate" }))
+        );
+        return;
+      }
+      
+      if (gameState.currentPlayer === 'white' && whiteMoves.length === 0) {
+        console.log("🏁 Vitória do black!");
+        players.forEach(p =>
+          p.ws.send(JSON.stringify({ type: "end", reason: "vitoria", winner: 'black' }))
+        );
+        return;
+      }
+      
+      if (gameState.currentPlayer === 'black' && blackMoves.length === 0) {
+        console.log("🏁 Vitória do white!");
+        players.forEach(p =>
+          p.ws.send(JSON.stringify({ type: "end", reason: "vitoria", winner: 'white' }))
+        );
+        return;
+      }
+      
       broadcastGameState();
     }
   });
