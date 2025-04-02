@@ -96,11 +96,24 @@ function connectToServer() {
 
     socket.addEventListener("open", () => {
         console.log("Conectado ao servidor WebSocket!");
-        startButton.removeAttribute("disabled");
     });
 
     socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
+
+        if (data.type === "welcome" && !playerId) {
+            playerId = data.playerId;
+            yourSideElement.textContent = `Você é o jogador: ${playerId === 'white' ? '♘ (white)' : '♞ (black)'}`;
+            setMessage(data.message);
+            controlarBotaoStart();
+        }
+
+        if (data.type === "state") {
+            gameState = data.state;
+            burned = data.state.burned;
+            updateBoardFromState(data.state);
+            controlarBotaoStart();
+        }
 
         if (data.type === "end") {
             if (data.reason === "empate") {
@@ -109,20 +122,8 @@ function connectToServer() {
                 const vencedor = data.winner === 'white' ? '♘ (white)' : '♞ (black)';
                 setMessage(`Fim de jogo! Vencedor: ${vencedor}`);
             }
-        
+
             startButton.removeAttribute("disabled");
-        }
-
-        if (data.type === "welcome" && !playerId) {
-            playerId = data.playerId;
-            yourSideElement.textContent = `Você é o jogador: ${playerId === 'white' ? '♘ (white)' : '♞ (black)'}`;
-            setMessage(data.message);
-        }
-
-        if (data.type === "state") {
-            gameState = data.state;
-            burned = data.state.burned;
-            updateBoardFromState(data.state);
         }
 
         if (data.type === "error") {
@@ -145,7 +146,7 @@ function connectToServer() {
 startButton.addEventListener("click", () => {
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "start" }));
-        startButton.setAttribute("disabled", "true"); // já desativa
+        startButton.setAttribute("disabled", "true");
     } else {
         setMessage("Aguardando conexão com o servidor...");
     }
@@ -157,7 +158,6 @@ function updateBoardFromState(state: any) {
     const posWhite = state.positions.white;
     const posBlack = state.positions.black;
 
-    // Renderiza casas queimadas
     state.burned.forEach((b: { x: number; y: number }) => {
         const burnedCell = document.querySelector(`.cell[data-x="${b.x}"][data-y="${b.y}"]`);
         if (burnedCell) burnedCell.classList.add("burned");
@@ -183,12 +183,21 @@ function updateBoardFromState(state: any) {
     }
 
     const current = state.currentPlayer === 'white' ? '♘ (white)' : '♞ (black)';
-    setMessage(`Vez de jogar: ${current}`);
 
     if (state.currentPlayer === playerId) {
         setMessage(`É sua vez (${current})`);
     } else {
         setMessage(`Aguarde... Vez de ${current}`);
+    }
+}
+
+function controlarBotaoStart() {
+    const partidaComecou = burned.length > 0;
+
+    if (playerId === 'white' && !partidaComecou) {
+        startButton.removeAttribute("disabled");
+    } else {
+        startButton.setAttribute("disabled", "true");
     }
 }
 
