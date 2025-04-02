@@ -14,6 +14,7 @@ interface Position {
 interface GameState {
   positions: Record<PlayerID, Position>;
   currentPlayer: PlayerID;
+  burned: Position[];
 }
 
 let players: { ws: WebSocket; id: PlayerID }[] = [];
@@ -37,6 +38,24 @@ function broadcastGameState() {
       state: gameState
     }));
   });
+}
+
+function getOpponent(player: PlayerID): PlayerID {
+  return player === 'white' ? 'black' : 'white';
+}
+
+function isBurned(pos: Position): boolean {
+  return gameState?.burned.some(p => p.x === pos.x && p.y === pos.y) ?? false;
+}
+
+function isValidKnightMove(from: Position, to: Position): boolean {
+  const dx = Math.abs(to.x - from.x);
+  const dy = Math.abs(to.y - from.y);
+  return (dx === 2 && dy === 1) || (dx === 1 && dy === 2);
+}
+
+function positionsEqual(a: Position, b: Position): boolean {
+  return a.x === b.x && a.y === b.y;
 }
 
 wss.on('connection', (ws: WebSocket) => {
@@ -71,8 +90,38 @@ wss.on('connection', (ws: WebSocket) => {
           white: posWhite,
           black: posBlack
         },
+        burned: [],
         currentPlayer: 'white'
       };
+
+      broadcastGameState();
+    }
+
+    if (data.type === 'move') {
+      if (!gameState) return;
+
+      const player = players.find(p => p.ws === ws);
+      if (!player || player.id !== gameState.currentPlayer) return;
+
+      const from = gameState.positions[player.id];
+      const to = data.to as Position;
+
+      // Valida movimento
+      if (
+        !isValidKnightMove(from, to) ||
+        isBurned(to) ||
+        positionsEqual(to, gameState.positions[getOpponent(player.id)])
+      ) {
+        console.log(`⛔️ Movimento inválido por ${player.id}`);
+        return;
+      }
+
+      // Movimento válido
+      console.log(`✅ ${player.id} moveu de (${from.x},${from.y}) para (${to.x},${to.y})`);
+
+      gameState.burned.push(from); // Queima a casa anterior
+      gameState.positions[player.id] = to;
+      gameState.currentPlayer = getOpponent(player.id);
 
       broadcastGameState();
     }

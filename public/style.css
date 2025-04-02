@@ -56,3 +56,8 @@ body {
     font-weight: bold;
     box-shadow: 0 0 8px 2px #8de19b;
   }
+
+  .cell.highlight {
+    outline: 3px solid limegreen;
+    cursor: pointer;
+  }
