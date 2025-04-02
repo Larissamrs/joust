@@ -78,3 +78,8 @@ body {
     top: 50%;
     left: 10%;
   }
+
+  .board.inactive {
+    pointer-events: none;
+    opacity: 0.5;
+  }

@@ -102,6 +102,17 @@ function connectToServer() {
     socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
 
+        if (data.type === "end") {
+            if (data.reason === "empate") {
+                setMessage("Jogo empatado! Nenhum jogador pode se mover.");
+            } else if (data.reason === "vitoria") {
+                const vencedor = data.winner === 'white' ? '♘ (white)' : '♞ (black)';
+                setMessage(`Fim de jogo! Vencedor: ${vencedor}`);
+            }
+        
+            startButton.removeAttribute("disabled");
+        }
+
         if (data.type === "welcome" && !playerId) {
             playerId = data.playerId;
             yourSideElement.textContent = `Você é o jogador: ${playerId === 'white' ? '♘ (white)' : '♞ (black)'}`;
@@ -134,6 +145,7 @@ function connectToServer() {
 startButton.addEventListener("click", () => {
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "start" }));
+        startButton.setAttribute("disabled", "true"); // já desativa
     } else {
         setMessage("Aguardando conexão com o servidor...");
     }
@@ -164,8 +176,20 @@ function updateBoardFromState(state: any) {
         blackCell.classList.add('knight-black');
     }
 
+    if (gameState.currentPlayer !== playerId) {
+        boardElement.classList.add("inactive");
+    } else {
+        boardElement.classList.remove("inactive");
+    }
+
     const current = state.currentPlayer === 'white' ? '♘ (white)' : '♞ (black)';
     setMessage(`Vez de jogar: ${current}`);
+
+    if (state.currentPlayer === playerId) {
+        setMessage(`É sua vez (${current})`);
+    } else {
+        setMessage(`Aguarde... Vez de ${current}`);
+    }
 }
 
 createBoard();
